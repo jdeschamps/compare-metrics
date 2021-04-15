@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class CompareCommand {
+public class CompareMetrics {
 
     public static String folder = "/Users/deschamp/git/compare-metrics/jupyter/data/";
 
