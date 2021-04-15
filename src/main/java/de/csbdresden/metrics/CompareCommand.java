@@ -19,56 +19,67 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CompareCommand {
+
+    public static String folder = "/Users/deschamp/git/compare-metrics/jupyter/data/";
 
     public static void main(String... args) throws IOException {
         ImageJ ij = new ImageJ();
 
         // get images
-        RandomAccessibleInterval dgt = ij.scifio().datasetIO().open("/Users/deschamp/git/compare-metrics/src/main/resources/gt.tiff");
-        RandomAccessibleInterval dpred = ij.scifio().datasetIO().open("/Users/deschamp/git/compare-metrics/src/main/resources/pred.tiff");
+        RandomAccessibleInterval dgt = ij.scifio().datasetIO().open(folder+"gt.tiff");
+        RandomAccessibleInterval dpred = ij.scifio().datasetIO().open(folder+"pred.tiff");
 
         RandomAccessibleInterval<IntType> gt = convertToInt(dgt);
         RandomAccessibleInterval<IntType> pred = convertToInt(dpred);
 
-        //ImageJFunctions.show(gt);
+        //RandomAccessibleInterval<IntType> gt_1 = Views.hyperSlice(gt, 2, 0);
+        //ImageJFunctions.show(gt_1);
 
+        runFullComparison(ij, gt, pred);
+    }
+
+    private static void runFullComparison(ImageJ ij, RandomAccessibleInterval<IntType> gt, RandomAccessibleInterval<IntType> pred){
         ///////////////
         // SEG
         ArrayList<Double> segResults = new ArrayList<>();
         SEG segMetrics = new SEG();
+
+        HashMap< MultiMetrics.Metrics, ArrayList<Double> > multiResults = new HashMap<>();
+        MultiMetrics.Metrics.stream().forEach(m -> multiResults.put(m, new ArrayList<>()));
+
+        MultiMetrics multMetrics = new MultiMetrics(0.5);
         for(int i=0; i<gt.dimension(0);i++){
-            RandomAccessibleInterval<IntType> gtS = Views.hyperSlice(gt, 0, i);
-            RandomAccessibleInterval<IntType> predS = Views.hyperSlice(pred, 0, i);
-            
+            RandomAccessibleInterval<IntType> gtS = Views.hyperSlice(gt, 2, i);
+            RandomAccessibleInterval<IntType> predS = Views.hyperSlice(pred, 2, i);
+
             double d = segMetrics.computeMetrics(gtS, predS);
             segResults.add(d);
+
+            multMetrics.computeMetrics(gtS, predS);
+            MultiMetrics.Metrics.stream().forEach(m -> multiResults.get(m).add(multMetrics.getScore(m)));
         }
 
-        // load seg python
-        ArrayList<Double> segPython = readCSV("/Users/deschamp/git/compare-metrics/src/main/resources/seg.txt");
+        // load python results
+        ArrayList<Double> segPython = readCSV(folder+"seg.txt");
+
+        HashMap< MultiMetrics.Metrics, ArrayList<Double> > multiPython = new HashMap<>();
+        multiPython.put(MultiMetrics.Metrics.ACCURACY, readCSV(folder+"accuracy.txt"));
+        multiPython.put(MultiMetrics.Metrics.MEAN_TRUE_IOU, readCSV(folder+"mean_true_score.txt"));
+        multiPython.put(MultiMetrics.Metrics.MEAN_MATCHED_IOU, readCSV(folder+"mean_matched_score.txt"));
+        multiPython.put(MultiMetrics.Metrics.F1, readCSV(folder+"f1.txt"));
+        multiPython.put(MultiMetrics.Metrics.TP, readCSV(folder+"tp.txt"));
+        multiPython.put(MultiMetrics.Metrics.FP, readCSV(folder+"fp.txt"));
+        multiPython.put(MultiMetrics.Metrics.FN, readCSV(folder+"fn.txt"));
+        multiPython.put(MultiMetrics.Metrics.PRECISION, readCSV(folder+"precision.txt"));
+        multiPython.put(MultiMetrics.Metrics.RECALL, readCSV(folder+"recall.txt"));
 
         // show result
         showTable(ij.ui(), "SEG", segResults, segPython);
+        MultiMetrics.Metrics.stream().forEach(m -> showTable(ij.ui(), m.getName(), multiResults.get(m), multiPython.get(m)));
 
-        ///////////////
-        // MultiMetrics
-        ArrayList<Double> accResults = new ArrayList<>();
-        MultiMetrics multMetrics = new MultiMetrics(MultiMetrics.Metrics.ACCURACY, 0.5);
-        for(int i=0; i<gt.dimension(0);i++){
-            RandomAccessibleInterval<IntType> gtS = Views.hyperSlice(gt, 0, i);
-            RandomAccessibleInterval<IntType> predS = Views.hyperSlice(pred, 0, i);
-
-            double d = multMetrics.computeMetrics(gtS, predS);
-            accResults.add(d);
-        }
-
-        // load seg python
-        ArrayList<Double> accPython = readCSV("/Users/deschamp/git/compare-metrics/src/main/resources/accuracy.txt");
-
-        // show result
-        showTable(ij.ui(), "Accuracy", accResults, accPython);
     }
 
     private static void showTable(UIService uiService, String title, ArrayList<Double> java, ArrayList<Double> py){
@@ -76,9 +87,16 @@ public class CompareCommand {
         DoubleColumn cJ = new DoubleColumn();
         DoubleColumn cP = new DoubleColumn();
 
+        System.out.println("------------------------------");
+        System.out.println("------------------------------");
+        System.out.println("--------- "+title+" ----------");
         for(int i=0; i<java.size(); i++){
             cJ.add(java.get(i));
             cP.add(py.get(i));
+
+            if(Math.abs(java.get(i)-py.get(i)) > 0.0001){
+                System.out.println(i+" - "+java.get(i)+" - "+py.get(i));
+            }
         }
 
         table.add(cJ);
