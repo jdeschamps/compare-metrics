@@ -3,7 +3,7 @@ package de.csbdresden.metrics;
 import net.imagej.ImageJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.metrics.segmentation.MultiMetrics;
-import net.imglib2.algorithm.metrics.segmentation.SEG;
+import net.imglib2.algorithm.metrics.segmentation.SEGMetrics;
 import net.imglib2.converter.Converter;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.RealType;
@@ -45,7 +45,7 @@ public class CompareMetrics {
         ///////////////
         // SEG
         ArrayList<Double> segResults = new ArrayList<>();
-        SEG segMetrics = new SEG();
+        SEGMetrics segMetrics = new SEGMetrics();
 
         HashMap< MultiMetrics.Metrics, ArrayList<Double> > multiResults = new HashMap<>();
         MultiMetrics.Metrics.stream().forEach(m -> multiResults.put(m, new ArrayList<>()));
