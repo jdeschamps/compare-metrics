@@ -46,7 +46,7 @@ import java.util.HashMap;
 public class CompareSegmentationMetrics
 {
 
-	public static String folder = "/Users/deschamp/git/compare-metrics/jupyter/segmentation/data/";
+	public final static String folder = "/Users/deschamp/git/compare-metrics/jupyter/segmentation/data/";
 
 	public static void main( String... args ) throws IOException
 	{
