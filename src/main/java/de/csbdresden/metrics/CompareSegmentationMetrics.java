@@ -39,11 +39,11 @@ import java.util.HashMap;
  * - Metrics result when feeding in the metrics a stack of images (slices along time)
  * - Metrics result when giving the frames one by one to a Lazy metrics
  *
- * The individula results are shown as a table. Outputs to the console are only
+ * The individual results are shown as a table. Outputs to the console are only
  * the frames or averages that are different between java and python. If it does
  * not print to the console, then the two are the same.
  */
-public class CompareMetrics
+public class CompareSegmentationMetrics
 {
 
 	public static String folder = "/Users/deschamp/git/compare-metrics/jupyter/segmentation/data/";
