@@ -19,7 +19,7 @@ import org.scijava.table.DoubleColumn;
 import org.scijava.table.Table;
 import org.scijava.ui.UIService;
 
-public class CompareImageQuaityMetrics
+public class CompareImageQualityMetrics
 {
 	public final static String folder = "/Users/deschamp/git/compare-metrics/jupyter/image-quality/data/";
 
@@ -51,7 +51,7 @@ public class CompareImageQuaityMetrics
 			RandomAccessibleInterval< UnsignedByteType > predS = Views.hyperSlice( pred, 2, i );
 
 			psnrResults.add( PSNR.computeMetrics(gtS, predS) );
-			ssimResults.add( SSIM.computeMetrics(gtS, predS, SSIM.Filter.GAUSS, 1.5) );
+			ssimResults.add( SSIM.computeMetrics(gtS, predS, 1.5) );
 		}
 
 		// load python results
