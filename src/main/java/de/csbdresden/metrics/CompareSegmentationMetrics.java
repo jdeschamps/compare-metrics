@@ -1,5 +1,6 @@
 package de.csbdresden.metrics;
 
+import de.csbdresden.metrics.CTC.SEGCTC;
 import net.imagej.ImageJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.metrics.segmentation.LazyMultiMetrics;
@@ -10,6 +11,8 @@ import net.imglib2.converter.Converter;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.imglib2.view.Views;
 import org.scijava.table.DefaultGenericTable;
 import org.scijava.table.DoubleColumn;
@@ -62,9 +65,11 @@ public class CompareSegmentationMetrics
 		//RandomAccessibleInterval<IntType> gt_1 = Views.hyperSlice(gt, 2, 0);
 		//ImageJFunctions.show(gt_1);
 
-		runIndividualImages( ij, gt, pred );
-		runAverage( ij, gt, pred );
-		runLazy( ij, gt, pred );
+		//runIndividualImages( ij, gt, pred );
+		//runAverage( ij, gt, pred );
+		//runLazy( ij, gt, pred );
+		runSegCTC(ij, gt, pred);
+		//runSegCTCIndividuals(ij, gt, pred);
 	}
 
 	private static void runAverage( final ImageJ ij, final RandomAccessibleInterval< IntType > groundtruth, final RandomAccessibleInterval< IntType > prediction )
@@ -101,6 +106,44 @@ public class CompareSegmentationMetrics
 
 		System.out.println( "--------- Multi" );
 		printIfDiff( resJava, multiPython );
+	}
+
+	private static void runSegCTC( final ImageJ ij, final RandomAccessibleInterval< IntType > groundtruth, final RandomAccessibleInterval< IntType > prediction )
+	{
+		final RandomAccessibleInterval< UnsignedShortType > gt = Converters.convert( convertToTime( groundtruth ), ( i, o ) -> o.set( i.getInt() ), new UnsignedShortType() );
+		final RandomAccessibleInterval< UnsignedShortType > pred = Converters.convert( convertToTime( prediction ), ( i, o ) -> o.set( i.getInt() ), new UnsignedShortType() );
+
+		// quick and dirty: the SEG from imglib2 expects a T dimension, otherwise it runs 3D labels
+
+		double segImgLib = SEGMetrics.computeMetrics( gt, pred );
+		double segCTC = new SEGCTC().calculate( gt, pred );
+
+		System.out.println("SEG average: "+segCTC+" vs "+segImgLib);
+	}
+
+	private static void runSegCTCIndividuals( final ImageJ ij, final RandomAccessibleInterval< IntType > groundtruth, final RandomAccessibleInterval< IntType > prediction )
+	{
+		final RandomAccessibleInterval< UnsignedShortType > gt = Converters.convert( groundtruth, ( i, o ) -> o.set( i.getInt() ), new UnsignedShortType() );
+		final RandomAccessibleInterval< UnsignedShortType > pred = Converters.convert( prediction, ( i, o ) -> o.set( i.getInt() ), new UnsignedShortType() );
+
+		System.out.println( "--------------------------------------" );
+		System.out.println( "-------------- Individuals --------------" );
+
+		ArrayList< Double > segResults = new ArrayList<>();
+		ArrayList< Double > segCTCResults = new ArrayList<>();
+		for ( int i = 0; i < gt.dimension( 2 ); i++ )
+		{
+			RandomAccessibleInterval< UnsignedShortType > gtS = Views.hyperSlice( gt, 2, i );
+			RandomAccessibleInterval< UnsignedShortType > predS = Views.hyperSlice( pred, 2, i );
+
+			double ctc = new SEGCTC().calculate(gtS, predS);
+			double imglib = SEGMetrics.computeMetrics(gtS, predS);
+
+			segResults.add( imglib );
+			segCTCResults.add( ctc );
+		}
+
+		showTable( ij.ui(), "SEG - singles", segCTCResults, segResults );
 	}
 
 	private static void runLazy( final ImageJ ij, final RandomAccessibleInterval< IntType > gt, final RandomAccessibleInterval< IntType > pred )
