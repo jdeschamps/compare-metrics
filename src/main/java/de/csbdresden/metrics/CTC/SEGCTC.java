@@ -94,7 +94,7 @@ public class SEGCTC
 		// if 2 dims, run on the 4th dimension (because that's how it is called in the compare metrics)
 		int whichDim = 2;
 		RandomAccessibleInterval<UnsignedShortType> gt, res;
-		if(groudntruth.numDimensions() == 3){
+		if(groudntruth.numDimensions() == 2){
 			gt = Views.addDimension( groudntruth,0,0 );
 			res = Views.addDimension( prediction,0,0 );
 		} else {

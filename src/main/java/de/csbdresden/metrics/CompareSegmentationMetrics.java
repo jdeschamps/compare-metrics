@@ -65,11 +65,11 @@ public class CompareSegmentationMetrics
 		//RandomAccessibleInterval<IntType> gt_1 = Views.hyperSlice(gt, 2, 0);
 		//ImageJFunctions.show(gt_1);
 
-		//runIndividualImages( ij, gt, pred );
-		//runAverage( ij, gt, pred );
-		//runLazy( ij, gt, pred );
+		runIndividualImages( ij, gt, pred );
+		runAverage( ij, gt, pred );
+		runLazy( ij, gt, pred );
 		runSegCTC(ij, gt, pred);
-		//runSegCTCIndividuals(ij, gt, pred);
+		runSegCTCIndividuals(ij, gt, pred);
 	}
 
 	private static void runAverage( final ImageJ ij, final RandomAccessibleInterval< IntType > groundtruth, final RandomAccessibleInterval< IntType > prediction )
