@@ -20,7 +20,6 @@ import net.imglib2.RandomAccess;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 
-import sc.fiji.simplifiedio.SimplifiedIO;
 
 import java.io.File;
 import java.io.IOException;
@@ -371,15 +370,8 @@ public class TrackDataCache
 	public Img<?> ReadImage(final String fname)
 			throws IOException
 	{
-		Img<?> img = SimplifiedIO.openImage(fname);
-		if (img == null)
-		{
-			//log.error("Error reading file: "+fname);
-			throw new IOException("Unable to read input file.");
-		}
 
-		//log.info("Loaded image: "+fname);
-		return (img);
+		return (null);
 	}
 
 
@@ -551,10 +543,7 @@ public class TrackDataCache
 			}
 
 		//check the images are not completely blank
-		if (shouldComplainOnEmptyImages && level.m_res_lab.length == 0)
-			throw new IllegalArgumentException("RES image has no markers!");
-		if (shouldComplainOnEmptyImages && level.m_gt_lab.length == 0)
-			throw new IllegalArgumentException("GT image has no markers!");
+
 
 		//we don't need this one anymore
 		gt_hist.clear();
